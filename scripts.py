@@ -22,171 +22,184 @@ import re
 from pytube import YouTube
 import time
 import math
+import random
 
-already_started = 0
+class Bot:
+    def __init__(self):
+        mixer.init()
+        self.already_started = 0
+        self.db_string = ''
 
-mixer.init()
+        self.USER = getpass.getuser()
+        self.SYSTEM = platform.system() + " " + platform.release()
 
-USER = getpass.getuser()
-SYSTEM = platform.system() + " " + platform.release()
+        self.engine = pyttsx3.init()
+        self.engine.setProperty('rate', 200)
 
-engine = pyttsx3.init()
-engine.setProperty('rate', 200)
+        self.client = Groq(
+            api_key=''
+        )
 
-client = Groq(
-    api_key='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'
-)
+        with open('H://MyCode//NewBot2//NewBot2//program_db.json', 'r') as f:
+            db = json.load(f)
+        
+        for a, i in db.items():
+            self.db_string += f"{a}_path = {i}. "
 
-with open('H://MyCode//NewBot2//NewBot2//program_db.json', 'r') as f:
-    db = json.load(f)
-db_string = ''
-for a, i in db.items():
-    db_string += f"{a}_path = {i}. "
-
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": f'Теперь и впредь твое имя - Алиса, ты разговариваешь только на русском языке, ты говоришь очень кратко. {db_string}',
-        }
-    ],
-    model="llama3-groq-70b-8192-tool-use-preview",
-)
-print(chat_completion.choices[0].message.content)
-
-def ai(text):
-    if ((text).upper()).find('ОТКР') != -1:
-        chat_completion1 = client.chat.completions.create(
+        chat_completion = (self.client).chat.completions.create(
             messages=[
                 {
                     "role": "user",
-                    "content": f'{text}. Если я пытаюсь открыть программу из списка: {db_string}, напиши только одно имя и путь к программе. Если не уверена на 100 процентов не пиши ничего.',
+                    "content": f'Теперь и впредь твое имя - Алиса, ты разговариваешь только на русском языке, ты говоришь очень кратко. {self.db_string}',
                 }
             ],
-            model="llama-3.2-90b-vision-preview",
+            model="llama3-groq-70b-8192-tool-use-preview",
         )
-        program_and_path = chat_completion1.choices[0].message.content
-        print(program_and_path)
-    else:
-        program_and_path = ''
-    bot_input = f'Напиши Python код для выполнения следующей команды: {text}. {program_and_path} Операционная система: {SYSTEM}. Имя пользователя: {USER}. Код должен быть качественным, без ошибок и готовым к выполнению. Код должен быть без if __name__ == "__main__":\n. Код должен быть безопастным и не удалять много файлов. Если ты считаешь что этот код может навредить компьютеру или привести к необратимым последствиям не пиши его. Пиши все названия как очень развернуто.'
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": bot_input,
-            }
-        ],
-        model="llama3-groq-70b-8192-tool-use-preview",
-    )
+        print(chat_completion.choices[0].message.content)
 
-    content = (chat_completion.choices[0].message.content).replace('if __name__ == "__main__":\n    ', '')
-    print(content)
-    content_words = content.split()
+    def ai(self, text):
+        if ((text).upper()).find('ПРИЛ') != -1:
+            chat_completion1 = self.client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f'{text}. Если я пытаюсь открыть программу из списка: {self.db_string}, напиши только одно имя и путь к программе. Если не уверена на 100 процентов не пиши ничего.',
+                    }
+                ],
+                model="llama-3.2-90b-vision-preview",
+            )
+            program_and_path = chat_completion1.choices[0].message.content
+            print(program_and_path)
+        else:
+            program_and_path = ''
+        bot_input = f'Напиши Python код для выполнения следующей команды: {text}. {program_and_path} Операционная система: {self.SYSTEM}. Имя пользователя: {self.USER}. Код должен быть качественным, без ошибок и готовым к выполнению. Код должен быть без if __name__ == "__main__":\n. Код должен быть безопастным и не удалять много файлов. Если ты считаешь что этот код может навредить компьютеру или привести к необратимым последствиям не пиши его. Пиши все названия как очень развернуто.'
+        chat_completion = self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": bot_input,
+                }
+            ],
+            model="llama3-groq-70b-8192-tool-use-preview",
+        )
 
-    idx = [x[0] for x in enumerate(content_words) if x[1] == 'def']
-    for _id in idx:
-        content = 'global ' + content_words[_id+1].split('(')[0] + '\n' + content
+        content = (chat_completion.choices[0].message.content).replace('if __name__ == "__main__":\n    ', '')
+        print(content)
+        content_words = content.split()
 
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        if ((text).upper()).find('УДАЛ') != -1 or ((content).upper()).find('REMOV') != -1 or ((text).upper()).find('ФОРМ') != -1:
-            safety = input('testYES or NO: ')
-            if safety.upper() == 'YES':
+        idx = [x[0] for x in enumerate(content_words) if x[1] == 'def']
+        for _id in idx:
+            content = 'global ' + content_words[_id+1].split('(')[0] + '\n' + content
+
+        if not ctypes.windll.shell32.IsUserAnAdmin():
+            if ((text).upper()).find('УДАЛ') != -1 or ((content).upper()).find('REMOV') != -1 or ((text).upper()).find('ФОРМ') != -1:
+                safety = input('testYES or NO: ')
+                if safety.upper() == 'YES':
+                    try:
+                        exec(str(content), [])
+                        #speaker(chat_completion.choices[0].message.content)
+                    except Exception as e:
+                        print(e)
+            else:
                 try:
-                    exec(str(content), [])
+                    exec(str(content))
                     #speaker(chat_completion.choices[0].message.content)
                 except Exception as e:
                     print(e)
         else:
-            try:
-                exec(str(content))
-                #speaker(chat_completion.choices[0].message.content)
-            except Exception as e:
-                print(e)
-    else:
-        print('unsafety')
+            print('unsafety')
 
-def check_safety(code, attempt):
-    attempt += 1
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": code,
-            }
-        ],
-        model="llama-guard-3-8b",
-    )
-    if chat_completion.choices[0].message.content == 'safe':
-        if attempt == 3:
-            return True
+    def check_safety(self, code, attempt):
+        attempt += 1
+        chat_completion = self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": code,
+                }
+            ],
+            model="llama-guard-3-8b",
+        )
+        if chat_completion.choices[0].message.content == 'safe':
+            if attempt == 3:
+                return True
+            else:
+                return self.check_safety(code, attempt)
         else:
-            return check_safety(code, attempt)
-    else:
-        return False
+            return False
 
-def speaker(text):
-    global already_started
-    with open('words.txt', 'w', encoding="utf-8") as text_file:
-        text_file.write(text)
-    with open('words.txt', 'r', encoding="utf-8") as text_file:
-        if  already_started == 1:
-            mixer.music.unload()
-        os.system('type H:\\MyCode\\NewBot2\\NewBot2\\words.txt | H:\\MyCode\\NewBot2\\NewBot2\\piper\\piper.exe -m H:\\MyCode\\NewBot2\\NewBot2\\piper\\ru_RU-irina-medium.onnx -c H:\\MyCode\\NewBot2\\NewBot2\\piper\\ru_ru_RU_irina_medium_ru_RU-irina-medium.onnx.json -f H:\\MyCode\\NewBot2\\NewBot2\\piper\\sound.wav')
-    mixer.music.load('H:\\MyCode\\NewBot2\\NewBot2\\piper\\sound.wav')
-    mixer.music.play()
-    already_started = 1
-def visual():
-    subprocess.Popen('C:\\Program Files\\Microsoft Visual Studio\\2022\Community\\Common7\\IDE\\devenv.exe')
-def youtube():
-    webbrowser.open_new_tab('https://www.youtube.com/')
-def discord():
-    webbrowser.open_new_tab('https://discord.com/channels/@me')
-def browser():
-    webbrowser.open_new_tab('https://www.google.com/')
-def weather():
-    try:
-        city = 'Гомель'
-        open_weather_url = 'https://api.openweathermap.org/data/2.5/weather?q='+city+'&units=metric&lang=ru&appid=41af888682cb61528343b2165bb641c8'
-        weather_data = requests.get(open_weather_url).json()
-        temperature = round(weather_data['main']['temp'])
-        temperature_feels = round(weather_data['main']['feels_like'])
-        text_w = 'Сейчас в городе', city, str(temperature), '°C' 'Ощущается как', str(temperature_feels), '°C'
-        engine.say(text_w)
-        engine.runAndWait()
-    except ConnectionError:
-        engine.say('Не удалось подключиться к базе данных')
-def jokes():
-    try:
-        joke = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=11').json(strict=False)
-        joke_filtred = joke['content']
-        engine.say(joke_filtred)
-        engine.runAndWait()
-    except ConnectionError:
-        engine.say('Не удалось подключиться к базе данных')
-def jokes_2():
-    try:
-        joke_2 = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=1').json(strict=False)
-        joke_2_filtred = joke_2['content']
-        engine.say(joke_2_filtred)
-        engine.runAndWait()
-    except ConnectionError:
-        engine.say('Не удалось подключиться к базе данных')
-def quotes():
-    try:
-        quote = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=16').json(strict=False)
-        quote_filtred = quote['content']
-        engine.say(quote_filtred)
-        engine.runAndWait()
-    except ConnectionError:
-        engine.say('Не удалось подключиться к базе данных')
-def quotes_2():
-    try:
-        quote_2 = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=6').json(strict=False)
-        quote_2_filtred = quote_2['content']
-        engine.say(quote_2_filtred)
-        engine.runAndWait()
-    except ConnectionError:
-        engine.say('Не удалось подключиться к базе данных')
-def pass_():
-    pass
+    def speaker(self, text):
+        with open('words.txt', 'w', encoding="utf-8") as text_file:
+            text_file.write(text)
+        with open('words.txt', 'r', encoding="utf-8") as text_file:
+            if  self.already_started == 1:
+                mixer.music.unload()
+            os.self.SYSTEM('type H:\\MyCode\\NewBot2\\NewBot2\\words.txt | H:\\MyCode\\NewBot2\\NewBot2\\piper\\piper.exe -m H:\\MyCode\\NewBot2\\NewBot2\\piper\\ru_RU-irina-medium.onnx -c H:\\MyCode\\NewBot2\\NewBot2\\piper\\ru_ru_RU_irina_medium_ru_RU-irina-medium.onnx.json -f H:\\MyCode\\NewBot2\\NewBot2\\piper\\sound.wav')
+        mixer.music.load('H:\\MyCode\\NewBot2\\NewBot2\\piper\\sound.wav')
+        mixer.music.play()
+
+        self.already_started = 1
+
+    def visual():
+        subprocess.Popen('C:\\Program Files\\Microsoft Visual Studio\\2022\Community\\Common7\\IDE\\devenv.exe')
+
+    def youtube():
+        webbrowser.open_new_tab('https://www.youtube.com/')
+
+    def discord():
+        webbrowser.open_new_tab('https://discord.com/channels/@me')
+
+    def browser():
+        webbrowser.open_new_tab('https://www.google.com/')
+
+    def weather(self):
+        try:
+            city = 'Гомель'
+            open_weather_url = 'https://api.openweathermap.org/data/2.5/weather?q='+city+'&units=metric&lang=ru&appid=41af888682cb61528343b2165bb641c8'
+            weather_data = requests.get(open_weather_url).json()
+            temperature = round(weather_data['main']['temp'])
+            temperature_feels = round(weather_data['main']['feels_like'])
+            text_w = 'Сейчас в городе', city, str(temperature), '°C' 'Ощущается как', str(temperature_feels), '°C'
+            self.engine.say(text_w)
+            self.engine.runAndWait()
+        except ConnectionError:
+            self.engine.say('Не удалось подключиться к базе данных')
+
+    def jokes(self):
+        try:
+            joke = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=11').json(strict=False)
+            joke_filtred = joke['content']
+            self.engine.say(joke_filtred)
+            self.engine.runAndWait()
+        except ConnectionError:
+            self.engine.say('Не удалось подключиться к базе данных')
+
+    def jokes_2(self):
+        try:
+            joke_2 = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=1').json(strict=False)
+            joke_2_filtred = joke_2['content']
+            self.engine.say(joke_2_filtred)
+            self.engine.runAndWait()
+        except ConnectionError:
+            self.engine.say('Не удалось подключиться к базе данных')
+
+    def quotes(self):
+        try:
+            quote = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=16').json(strict=False)
+            quote_filtred = quote['content']
+            self.engine.say(quote_filtred)
+            self.engine.runAndWait()
+        except ConnectionError:
+            self.engine.say('Не удалось подключиться к базе данных')
+
+    def quotes_2(self):
+        try:
+            quote_2 = requests.get('http://rzhunemogu.ru/RandJSON.aspx?CType=6').json(strict=False)
+            quote_2_filtred = quote_2['content']
+            self.engine.say(quote_2_filtred)
+            self.engine.runAndWait()
+        except ConnectionError:
+            self.engine.say('Не удалось подключиться к базе данных')
+
+    def pass_():
+        pass

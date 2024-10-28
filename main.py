@@ -25,7 +25,7 @@ def recognize(data, vectorizer, clf):
         return 
 
     data.replace(list(trg)[0], '')
-    ai(text=data.replace(list(trg)[0], ''))
+    bot.ai(text=data.replace(list(trg)[0], ''))
     #text_vector = vectorizer.transform([data]).toarray()[0]
     #answer = clf.predict([text_vector])[0]
     #func_name = answer.split()[0]
@@ -62,4 +62,5 @@ if __name__ == '__main__':
             db[program] = exe_path
     with open('H://MyCode//NewBot2//NewBot2//program_db.json', 'w') as f:
         json.dump(db, f)
+    bot = Bot()
     main1234()
