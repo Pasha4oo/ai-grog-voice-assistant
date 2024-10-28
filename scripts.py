@@ -34,7 +34,7 @@ engine = pyttsx3.init()
 engine.setProperty('rate', 200)
 
 client = Groq(
-    api_key='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'
+    api_key=''
 )
 
 with open('H://MyCode//NewBot2//NewBot2//program_db.json', 'r') as f:
